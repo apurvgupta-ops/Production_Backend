@@ -21,6 +21,8 @@ import './models/index.js';
 
 
 const app = express();
+
+const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 5000;
 
 
@@ -79,7 +81,7 @@ async function startServer() {
         initializeRoutes();
         initializeErrorHandling();
 
-        app.listen(port, () => {
+        app.listen(port, host, () => {
             logger.info(`Server running on port ${port} in ${process.env.NODE_ENV} mode`);
             logger.info(`API Documentation available at http://localhost:${port}/api/v1/docs`);
             logger.info(`Health check available at http://localhost:${port}/health`);

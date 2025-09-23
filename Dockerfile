@@ -8,6 +8,7 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Set environment variables for Docker
+ENV HOST=0.0.0.0
 ENV DB_HOST=host.docker.internal
 
 EXPOSE 5000
