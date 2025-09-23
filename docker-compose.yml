@@ -1,36 +1,21 @@
 version: "3.8"
 
 services:
-  app:
-    build: .
-    ports:
-      - \"5000:5000\"
+  mysql:
+    image: mysql:8.0
+    container_name: backend_mysql
+    restart: always
     environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongodb
-      - redis
-    volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
-    restart: unless-stopped
-
-  mongodb:
-    image: mongo:6
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: backend_dev
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
-      - \"27017:27017\"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - "3306:3306"
     volumes:
-      - mongodb_data:/data/db
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - \"6379:6379\"
-    restart: unless-stopped
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
-  mongodb_data:
+  mysql_data:

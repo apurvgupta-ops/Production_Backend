@@ -16,6 +16,8 @@ import logger from './utils/logger.js';
 import { validateEnv } from './utils/validation.js';
 import { cleanupOldFiles } from './utils/fileUpload.js';
 import { sendNotFoundResponse } from './utils/apiHelpers.js';
+// Import models to ensure they are registered
+import './models/index.js';
 
 
 const app = express();

@@ -5,7 +5,8 @@ import logger from './logger.js';
  */
 const validateEnv = () => {
   const requiredEnvVars = [
-    'MONGODB_URI',
+    'DB_NAME',
+    'DB_USERNAME',
     'JWT_SECRET'
   ];
 
@@ -23,9 +24,10 @@ const validateEnv = () => {
     throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
 
-  // Validate MongoDB URI format
-  if (!process.env.MONGODB_URI.startsWith('mongodb://') && !process.env.MONGODB_URI.startsWith('mongodb+srv://')) {
-    throw new Error('MONGODB_URI must be a valid MongoDB connection string');
+  // Validate database dialect
+  const validDialects = ['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql'];
+  if (process.env.DB_DIALECT && !validDialects.includes(process.env.DB_DIALECT)) {
+    throw new Error(`DB_DIALECT must be one of: ${validDialects.join(', ')}`);
   }
 
   // Validate Google API key format (if provided)
@@ -42,35 +44,27 @@ const validateEnv = () => {
 };
 
 /**
- * Validate MongoDB query object to prevent injection attacks
+ * Validate SQL query object to prevent injection attacks
  */
-const validateMongoQuery = (query) => {
+const validateSqlQuery = (query) => {
   if (!query || typeof query !== 'object') {
     throw new Error('Query must be a valid object');
   }
 
-  // Check for dangerous operators
-  const dangerousOperators = ['$where', '$regex'];
+  // Check for dangerous SQL patterns
+  const dangerousPatterns = [
+    /\b(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE|EXEC|EXECUTE)\b/i,
+    /;\s*--/,
+    /\/\*.*\*\//,
+    /\bunion\b.*\bselect\b/i,
+    /\bor\b.*\b1\s*=\s*1\b/i
+  ];
+
   const queryString = JSON.stringify(query);
 
-  dangerousOperators.forEach(op => {
-    if (queryString.includes(op)) {
-      // Allow $regex but validate it
-      if (op === '$regex') {
-        // Basic validation for regex patterns
-        const regexMatches = queryString.match(/"\$regex":\s*"([^"]+)"/g);
-        if (regexMatches) {
-          regexMatches.forEach(match => {
-            const pattern = match.match(/"\$regex":\s*"([^"]+)"/)[1];
-            // Check for potentially dangerous regex patterns
-            if (pattern.includes('.*.*') || pattern.length > 100) {
-              throw new Error('Regex pattern appears to be potentially dangerous');
-            }
-          });
-        }
-      } else {
-        throw new Error(`Dangerous operator ${op} is not allowed`);
-      }
+  dangerousPatterns.forEach(pattern => {
+    if (pattern.test(queryString)) {
+      throw new Error('Query contains potentially dangerous SQL patterns');
     }
   });
 
@@ -159,7 +153,7 @@ const validatePhone = (phone) => {
 
 export {
   validateEnv,
-  validateMongoQuery,
+  validateSqlQuery,
   sanitizeInput,
   validatePagination,
   validateDateRange,

@@ -3,6 +3,7 @@ import express from 'express';
 import userRoutes from '../routes/user.js';
 import errorHandler from '../middlewares/errorHandler.js';
 import { sendNotFoundResponse } from '../utils/apiHelpers.js';
+import { User } from '../models/index.js';
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,20 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 describe('User API Endpoints', () => {
+    // Create test user before tests that need it
+    let testUser;
+
+    beforeEach(async () => {
+        // Create a test user
+        testUser = await User.create({
+            name: 'Test User',
+            email: 'test@example.com',
+            password: 'TestPass123!',
+            role: 'user',
+            phone: '+1234567890',
+            is_active: true
+        });
+    });
     describe('GET /api/v1/users', () => {
         it('should return paginated users list', async () => {
             const response = await request(app)
@@ -59,13 +74,14 @@ describe('User API Endpoints', () => {
     describe('GET /api/v1/users/:id', () => {
         it('should return a single user', async () => {
             const response = await request(app)
-                .get('/api/v1/users/1')
+                .get(`/api/v1/users/${testUser.id}`)
                 .expect(200);
 
             expect(response.body).toHaveProperty('success', true);
             expect(response.body).toHaveProperty('message', 'User retrieved successfully');
             expect(response.body).toHaveProperty('data');
-            expect(response.body.data).toHaveProperty('id', 1);
+            expect(response.body.data).toHaveProperty('id', testUser.id);
+            expect(response.body.data).toHaveProperty('email', testUser.email);
         });
 
         it('should return 404 for non-existent user', async () => {
@@ -91,8 +107,8 @@ describe('User API Endpoints', () => {
     describe('POST /api/v1/users', () => {
         it('should create a new user with valid data', async () => {
             const userData = {
-                name: 'Test User',
-                email: 'test@example.com',
+                name: 'New Test User',
+                email: 'newtest@example.com',
                 password: 'TestPass123!',
                 role: 'user'
             };
@@ -108,6 +124,11 @@ describe('User API Endpoints', () => {
             expect(response.body.data).toHaveProperty('name', userData.name);
             expect(response.body.data).toHaveProperty('email', userData.email);
             expect(response.body.data).not.toHaveProperty('password'); // Password should be excluded
+
+            // Verify user was actually created in database
+            const createdUser = await User.findOne({ where: { email: userData.email } });
+            expect(createdUser).toBeTruthy();
+            expect(createdUser.name).toBe(userData.name);
         });
 
         it('should return validation error for missing required fields', async () => {
@@ -146,7 +167,7 @@ describe('User API Endpoints', () => {
             };
 
             const response = await request(app)
-                .put('/api/v1/users/1')
+                .put(`/api/v1/users/${testUser.id}`)
                 .send(updateData)
                 .expect(200);
 
@@ -154,6 +175,10 @@ describe('User API Endpoints', () => {
             expect(response.body).toHaveProperty('message', 'User updated successfully');
             expect(response.body).toHaveProperty('data');
             expect(response.body.data).toHaveProperty('name', updateData.name);
+
+            // Verify user was actually updated in database
+            const updatedUser = await User.findByPk(testUser.id);
+            expect(updatedUser.name).toBe(updateData.name);
         });
 
         it('should return validation error for empty update data', async () => {
@@ -170,13 +195,18 @@ describe('User API Endpoints', () => {
     describe('DELETE /api/v1/users/:id', () => {
         it('should delete user successfully', async () => {
             const response = await request(app)
-                .delete('/api/v1/users/1')
+                .delete(`/api/v1/users/${testUser.id}`)
                 .expect(200);
 
             expect(response.body).toHaveProperty('success', true);
             expect(response.body).toHaveProperty('message', 'User deleted successfully');
             expect(response.body).toHaveProperty('data');
             expect(response.body.data).toHaveProperty('deletedUser');
+
+            // Verify user was soft deleted in database
+            const deletedUser = await User.scope('deleted').findByPk(testUser.id);
+            expect(deletedUser.is_deleted).toBe(true);
+            expect(deletedUser.deleted_at).toBeTruthy();
         });
 
         it('should return 404 for non-existent user', async () => {

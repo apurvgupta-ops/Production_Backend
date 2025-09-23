@@ -148,17 +148,15 @@ export const asyncHandler = (fn) => {
  * Database transaction wrapper
  */
 export const withTransaction = async (callback) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const { sequelize } = await import('../models/index.js');
+    const transaction = await sequelize.transaction();
 
     try {
-        const result = await callback(session);
-        await session.commitTransaction();
+        const result = await callback(transaction);
+        await transaction.commit();
         return result;
     } catch (error) {
-        await session.abortTransaction();
+        await transaction.rollback();
         throw error;
-    } finally {
-        session.endSession();
     }
 };

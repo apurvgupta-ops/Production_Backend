@@ -5,7 +5,8 @@ import {
     createUser,
     updateUser,
     deleteUser,
-    triggerError
+    triggerError,
+    transferAdminRole
 } from '../controllers/userController.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validation.js';
@@ -29,6 +30,9 @@ router.get('/:id', validateParams(userParamsSchema), getUser);
 router.post('/', validateBody(createUserSchema), createUser);
 router.put('/:id', validateParams(userParamsSchema), validateBody(updateUserSchema), updateUser);
 router.delete('/:id', validateParams(userParamsSchema), deleteUser);
+
+// Transaction examples
+router.post('/transfer-admin', transferAdminRole);
 
 // Admin only routes (example)
 // router.delete('/admin/:id', authorize('admin'), validateParams(userParamsSchema), deleteUser);

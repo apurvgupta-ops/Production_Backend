@@ -21,19 +21,52 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 404;
   }
 
-  // Mongoose duplicate key
-  if (err.code === 11000) {
+  // Sequelize validation error
+  if (err.name === 'SequelizeValidationError') {
+    message = 'Validation failed';
+    statusCode = 422;
+    errors = err.errors.map(error => ({
+      field: error.path,
+      message: error.message,
+      value: error.value
+    }));
+  }
+
+  // Sequelize unique constraint error
+  if (err.name === 'SequelizeUniqueConstraintError') {
     message = 'Duplicate field value entered';
     statusCode = 400;
-    const field = Object.keys(err.keyValue)[0];
+    const field = err.errors[0]?.path || 'field';
     errors = [`${field} already exists`];
   }
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    message = 'Validation failed';
-    statusCode = 422;
-    errors = Object.values(err.errors).map(val => val.message);
+  // Sequelize foreign key constraint error
+  if (err.name === 'SequelizeForeignKeyConstraintError') {
+    message = 'Foreign key constraint violation';
+    statusCode = 400;
+    errors = [`Referenced ${err.table} does not exist`];
+  }
+
+  // Sequelize database connection error
+  if (err.name === 'SequelizeConnectionError') {
+    message = 'Database connection failed';
+    statusCode = 503;
+  }
+
+  // Sequelize timeout error
+  if (err.name === 'SequelizeTimeoutError') {
+    message = 'Database operation timed out';
+    statusCode = 408;
+  }
+
+  // Sequelize database error
+  if (err.name === 'SequelizeDatabaseError') {
+    message = 'Database error occurred';
+    statusCode = 500;
+    if (err.message.includes('syntax error')) {
+      message = 'Invalid query syntax';
+      statusCode = 400;
+    }
   }
 
   // JWT errors

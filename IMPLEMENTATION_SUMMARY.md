@@ -89,18 +89,18 @@ Successfully implemented comprehensive standardized success and error response h
 
 ## 🛠️ Available Response Functions
 
-| Function | Status Code | Usage |
-|----------|-------------|-------|
-| `sendSuccessResponse` | 200 | General success |
-| `sendCreatedResponse` | 201 | Resource created |
-| `sendBadRequestResponse` | 400 | Invalid request |
-| `sendUnauthorizedResponse` | 401 | Authentication required |
-| `sendForbiddenResponse` | 403 | Access denied |
-| `sendNotFoundResponse` | 404 | Resource not found |
-| `sendConflictResponse` | 409 | Resource conflict |
-| `sendValidationErrorResponse` | 422 | Validation failed |
-| `sendServerErrorResponse` | 500 | Server error |
-| `sendErrorResponse` | Custom | Generic error |
+| Function                      | Status Code | Usage                   |
+| ----------------------------- | ----------- | ----------------------- |
+| `sendSuccessResponse`         | 200         | General success         |
+| `sendCreatedResponse`         | 201         | Resource created        |
+| `sendBadRequestResponse`      | 400         | Invalid request         |
+| `sendUnauthorizedResponse`    | 401         | Authentication required |
+| `sendForbiddenResponse`       | 403         | Access denied           |
+| `sendNotFoundResponse`        | 404         | Resource not found      |
+| `sendConflictResponse`        | 409         | Resource conflict       |
+| `sendValidationErrorResponse` | 422         | Validation failed       |
+| `sendServerErrorResponse`     | 500         | Server error            |
+| `sendErrorResponse`           | Custom      | Generic error           |
 
 ## 🔄 Applied Throughout Codebase
 
