@@ -1,0 +1,21 @@
+name: Auto Merge and Deploy
+
+on:
+  push:
+    branches-ignore:
+      - main # trigger on all branches except main
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Auto merge to main
+        uses: devmasx/merge-branch@v1.4.0
+        with:
+          type: now
+          from_branch: ${{ github.ref_name }}
+          target_branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
