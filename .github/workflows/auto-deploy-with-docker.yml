@@ -46,7 +46,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/steeru-api:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/production_backend:latest
           file: ./Dockerfile
 
   # # 3️⃣ Deploy on remote server using docker-compose
