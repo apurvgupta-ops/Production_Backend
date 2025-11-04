@@ -63,7 +63,7 @@ jobs:
   #         key: ${{ secrets.SSH_KEY }}
   #         script: |
   #           echo "🔁 Pulling latest Docker image..."
-  #           cd /var/www/steeru
+  #           cd /var/www/production_backend
   #           docker-compose pull
   #           docker-compose down
   #           docker-compose up -d --build
